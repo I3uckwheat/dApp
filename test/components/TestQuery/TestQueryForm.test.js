@@ -50,7 +50,7 @@ describe('TestQueryForm', () => {
     expect(testQueryForm.state('step')).to.equal(dataSourceStep - 1);
   });
 
-  it('should move to next step on SelectDataSourceStep.onPrevClicked', () => {
+  it('should move to next step on SelectDataSourceStep.onNextClicked', () => {
     testQueryForm.setState({ step: dataSourceStep });
     testQueryForm.find(SelectDataSourceStep).simulate('nextClicked');
     expect(testQueryForm.state('step')).to.equal(dataSourceStep + 1);
@@ -63,10 +63,17 @@ describe('TestQueryForm', () => {
     expect(testQueryForm.state('oracleDataSource')).to.equal(dataSource);
   });
 
-  it('should change gas price with SetQueryStep.onGasPriceChange', () => {
+  it('should change gas price with SetQueryStep.onUpdateGasLimit', () => {
+    const gas = 580000;
+    testQueryForm.setState({ step: setQueryStep });
+    testQueryForm.find(SetQueryStep).simulate('updateGasLimit', gas);
+    expect(testQueryForm.state('gas')).to.equal(gas);
+  });
+
+  it('should change gas price with SetQueryStep.onUpdateGasPrice', () => {
     const gasPrice = 3;
     testQueryForm.setState({ step: setQueryStep });
-    testQueryForm.find(SetQueryStep).simulate('gasPriceChange', gasPrice);
+    testQueryForm.find(SetQueryStep).simulate('updateGasPrice', gasPrice);
     expect(testQueryForm.state('gasPrice')).to.equal(gasPrice);
   });
 

@@ -30,15 +30,20 @@ export function testQuery({ web3, querySpecs }, { QueryTest }) {
               );
             })
             .then(function(queryCost) {
+              let txParams = {
+                gasPrice: web3.toWei(querySpecs.gasPrice, 'gwei'),
+                from: coinbase,
+                value: queryCost
+              };
+
+              if (querySpecs.gas) {
+                txParams.gas = querySpecs.gas;
+              }
+
               return queryTestContractInstance.testOracleQuery(
                 querySpecs.oracleDataSource,
                 querySpecs.oracleQuery,
-                {
-                  gas: 200000,
-                  gasPrice: web3.toWei(querySpecs.gasPrice, 'gwei'),
-                  from: coinbase,
-                  value: queryCost
-                }
+                txParams
               );
             })
             .then(function(queryTransactionResults) {

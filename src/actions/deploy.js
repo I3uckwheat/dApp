@@ -1,7 +1,7 @@
 import Rx from 'rxjs/Rx';
 import { XMLHttpRequest } from 'xmlhttprequest';
 
-import { getMetamaskError } from '../util/utils';
+import { getMetamaskError, isTestnetOrMainnet } from '../util/utils';
 
 /**
  *
@@ -11,7 +11,7 @@ import { getMetamaskError } from '../util/utils';
  * @param {*}
  */
 export function deployContract(
-  { web3, contractSpecs },
+  { web3, contractSpecs, network },
   { MarketContractRegistry, MarketContract, MarketCollateralPool, MarketToken }
 ) {
   const type = 'DEPLOY_CONTRACT';
@@ -43,6 +43,15 @@ export function deployContract(
           // find the address of the MKT token so we can link to our deployed contract
           let marketContractInstanceDeployed;
 
+          let txParams = {
+            gasPrice: web3.toWei(contractSpecs.gasPrice, 'gwei'),
+            from: coinbase
+          };
+
+          if (contractSpecs.gas && !isTestnetOrMainnet(network)) {
+            txParams.gas = contractSpecs.gas;
+          }
+
           MarketToken.deployed()
             .then(function(marketTokenInstance) {
               return MarketContract.new(
@@ -52,67 +61,54 @@ export function deployContract(
                 contractConstructorArray,
                 contractSpecs.oracleDataSource,
                 contractSpecs.oracleQuery,
-                {
-                  gas: 5700000, // TODO : Remove hard-coded gas
-                  gasPrice: web3.toWei(contractSpecs.gasPrice, 'gwei'),
-                  from: coinbase
-                }
+                txParams
               );
             })
             .then(function(marketContractInstance) {
               marketContractInstanceDeployed = marketContractInstance;
-              return MarketCollateralPool.new(marketContractInstance.address, {
-                gas: 2100000,
-                gasPrice: web3.toWei(contractSpecs.gasPrice, 'gwei'),
-                from: coinbase
-              });
+              return MarketCollateralPool.new(
+                marketContractInstance.address,
+                txParams
+              );
             })
             .then(function(marketCollateralPoolInstance) {
               return marketContractInstanceDeployed.setCollateralPoolContractAddress(
                 marketCollateralPoolInstance.address,
-                {
-                  from: coinbase,
-                  gasPrice: web3.toWei(contractSpecs.gasPrice, 'gwei')
-                }
+                txParams
               );
             })
             .then(function() {
               return MarketContractRegistry.deployed();
             })
             .then(function(marketContractRegistryInstance) {
-              web3.version.getNetwork((error, network) => {
-                // Rinkeby
-                if (network === '4') {
-                  // Add deployed contract address to whitelist
-                  Rx.Observable.ajax({
-                    url: 'https://api.marketprotocol.io/contracts/whitelist',
-                    method: 'POST',
-                    body: { address: marketContractInstanceDeployed.address },
-                    headers: {
-                      'Content-Type': 'application/json'
-                    },
-                    responseType: 'json',
-                    crossDomain: true,
-                    createXHR: () => new XMLHttpRequest()
-                  })
-                    .catch(
-                      err =>
-                        err.xhr
-                          ? Rx.Observable.of(err)
-                          : Rx.Observable.of('.___.')
-                    )
-                    .map(data => data.response)
-                    .subscribe(res => console.log(res));
-                } else {
-                  marketContractRegistryInstance.addAddressToWhiteList(
-                    marketContractInstanceDeployed.address,
-                    {
-                      from: web3.eth.accounts[0],
-                      gasPrice: web3.toWei(contractSpecs.gasPrice, 'gwei')
-                    }
-                  );
-                }
-              });
+              // Rinkeby
+              if (network === 'rinkeby') {
+                // Add deployed contract address to whitelist
+                Rx.Observable.ajax({
+                  url: 'https://api.marketprotocol.io/contracts/whitelist',
+                  method: 'POST',
+                  body: { address: marketContractInstanceDeployed.address },
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  responseType: 'json',
+                  crossDomain: true,
+                  createXHR: () => new XMLHttpRequest()
+                })
+                  .catch(
+                    err =>
+                      err.xhr
+                        ? Rx.Observable.of(err)
+                        : Rx.Observable.of('.___.')
+                  )
+                  .map(data => data.response)
+                  .subscribe(res => console.log(res));
+              } else {
+                marketContractRegistryInstance.addAddressToWhiteList(
+                  marketContractInstanceDeployed.address,
+                  txParams
+                );
+              }
 
               dispatch({
                 type: `${type}_FULFILLED`,

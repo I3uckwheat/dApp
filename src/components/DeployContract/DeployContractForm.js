@@ -33,8 +33,9 @@ class DeployContractForm extends Component {
   }
 
   computeChildrenProps() {
-    const location = this.props.location;
+    const { location, network } = this.props;
     const queryParams = qs.parse(location.search);
+
     const {
       mode = 'quick' // defaults to QuickDeployment
     } = queryParams;
@@ -45,13 +46,21 @@ class DeployContractForm extends Component {
       ...queryParams,
       mode: 'guided'
     })}`;
+
     const switchMode = newMode => {
       this.props.history.push({
         ...location,
         search: `?${qs.stringify({ ...queryParams, mode: newMode })}`
       });
     };
-    return { mode, switchMode, guidedModeUrl, initialValues: queryParams };
+
+    return {
+      mode,
+      switchMode,
+      guidedModeUrl,
+      initialValues: queryParams,
+      network
+    };
   }
 
   render() {

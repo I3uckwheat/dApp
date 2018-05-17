@@ -45,7 +45,11 @@ describe('DeployAction', () => {
       MarketCollateralPool: MarketCollateralPool(),
       MarketToken: MarketToken()
     };
-    deployParams = { contractSpecs: validContractSpecs(), web3: mockedCoinbaseWeb3() };
+    deployParams = {
+      contractSpecs: validContractSpecs(),
+      web3: mockedCoinbaseWeb3(),
+      network: 'unknown'
+    };
     dispatchSpy = sinon.spy();
   });
 

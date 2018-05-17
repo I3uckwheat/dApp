@@ -291,3 +291,15 @@ export const getMetamaskError = function(message) {
 };
 
 export const getLocationOrigin = () => window.location.origin;
+
+/**
+ * Detect if network belongs to testnet/mainnet
+ *
+ * @param network
+ * @return boolean true/false
+ */
+export const isTestnetOrMainnet = network => {
+  return (
+    network !== 'truffle' && network !== 'ganache' && network !== 'unknown'
+  );
+};

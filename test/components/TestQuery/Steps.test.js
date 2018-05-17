@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Button, Select, Input } from 'antd';
+import { Button, Select, Input, InputNumber } from 'antd';
 import { shallow } from 'enzyme';
 import sinon from 'sinon';
 import { expect } from 'chai';
@@ -45,6 +45,7 @@ describe('SelectDataSourceStep', () => {
   let onNextClickSpy;
   let onPrevClickSpy;
   let onChangeSpy;
+
   beforeEach(() => {
     onNextClickSpy = sinon.spy();
     onPrevClickSpy = sinon.spy();
@@ -86,17 +87,20 @@ describe('SetQueryStep', () => {
   let onSubmitSpy;
   let onPrevClickSpy;
   let onChangeSpy;
-  let onGasPriceSpy;
+  let updateGasLimitSpy;
+  let updateGasPriceSpy;
   beforeEach(() => {
     onSubmitSpy = sinon.spy();
     onPrevClickSpy = sinon.spy();
     onChangeSpy = sinon.spy();
-    onGasPriceSpy = sinon.spy();
+    updateGasLimitSpy = sinon.spy();
+    updateGasPriceSpy = sinon.spy();
     setQueryStep = shallow(<SetQueryStep
       dataSource={DataSources[0].name}
       onSubmit={onSubmitSpy}
       onPrevClicked={onPrevClickSpy}
-      onGasPriceChange={onGasPriceSpy}
+      onUpdateGasLimit={updateGasLimitSpy}
+      onUpdateGasPrice={updateGasPriceSpy}
       onChange={onChangeSpy} />);
   });
 
@@ -112,10 +116,16 @@ describe('SetQueryStep', () => {
     expect(onChangeSpy).to.have.property('callCount', 1);
   });
 
-  it('should call onGasPriceChange with changes in gas price input', () => {
+  it('should call updateGasLimit with changes in gas limit input', () => {
+    const gas = 580000;
+    setQueryStep.find(GasPriceField).simulate('updateGasLimit', gas);
+    expect(updateGasLimitSpy).to.have.property('callCount', 1);
+  });
+
+  it('should call updateGasPrice with changes in gas price input', () => {
     const price = 3;
-    setQueryStep.find(GasPriceField).simulate('change', price);
-    expect(onGasPriceSpy).to.have.property('callCount', 1);
+    setQueryStep.find(GasPriceField).simulate('updateGasPrice', price);
+    expect(updateGasPriceSpy).to.have.property('callCount', 1);
   });
 
   it('sets correct onPrevClicked property', () => {

@@ -1,6 +1,8 @@
-import { Col, Form, Icon, Input, Row, Popover } from 'antd';
+import { Col, Form, Icon, InputNumber, Row, Popover } from 'antd';
 import React, { Component } from 'react';
 import Rx from 'rxjs/Rx';
+
+import { isTestnetOrMainnet } from '../util/utils';
 
 const FormItem = Form.Item;
 
@@ -34,15 +36,29 @@ class GasPriceField extends Component {
     this.updateNetworkCondition = this.updateNetworkCondition.bind(this);
   }
 
-  onInputChange(e) {
-    if (isNaN(e.target.value)) return;
-    const price = parseFloat(e.target.value);
+  onGasLimitChange(value) {
+    if (!value || isNaN(value)) return;
+
     this.setState({
-      gasprice: price,
-      message: this.getMessage(this.state.condition, this.state.gaslimit, price)
+      gaslimit: value,
+      message: this.getMessage(this.state.condition, value, this.state.gasprice)
     });
-    if (this.props.onChange) {
-      this.props.onChange(price);
+
+    if (this.props.onUpdateGasLimit) {
+      this.props.onUpdateGasLimit(value);
+    }
+  }
+
+  onGasPriceChange(value) {
+    if (!value || isNaN(value)) return;
+
+    this.setState({
+      gasprice: value,
+      message: this.getMessage(this.state.condition, this.state.gaslimit, value)
+    });
+
+    if (this.props.onUpdateGasPrice()) {
+      this.props.onUpdateGasPrice(value);
     }
   }
 
@@ -79,12 +95,13 @@ class GasPriceField extends Component {
       : time >= 0
         ? `The following MetaMask settings should give a ${time} min confirmation for ${cost} ETH`
         : `The gas price is below the market low safe price (currently about ${condition.safeLow /
-        10} gwei), your transaction might take forever to get confirmed`;
+            10} gwei), your transaction might take forever to get confirmed`;
     return message;
   }
 
   componentDidMount() {
     const gasInfoUrl = 'https://ethgasstation.info/json/ethgasAPI.json';
+
     this.subscription = Rx.Observable.ajax({
       url: gasInfoUrl,
       method: 'GET',
@@ -100,6 +117,8 @@ class GasPriceField extends Component {
   }
 
   render() {
+    const isMetamask = isTestnetOrMainnet(this.props.network);
+
     return (
       <Row>
         <Col>
@@ -125,14 +144,28 @@ class GasPriceField extends Component {
                   </span>
                 }
               >
-                <Input
-                  type="number"
-                  min="0"
-                  id="gasLimit"
-                  placeholder="Gas Limit (units)"
-                  value={this.state.gaslimit}
-                  disabled
-                />
+                {this.props.form ? (
+                  this.props.form.getFieldDecorator('gas', {
+                    initialValue: this.state.gaslimit
+                  })(
+                    <InputNumber
+                      min={0}
+                      placeholder="Gas Limit (units)"
+                      onChange={this.onGasLimitChange.bind(this)}
+                      style={{ width: '100%' }}
+                      disabled={isMetamask}
+                    />
+                  )
+                ) : (
+                  <InputNumber
+                    min={0}
+                    placeholder="Gas Limit (units)"
+                    onChange={this.onGasLimitChange.bind(this)}
+                    style={{ width: '100%' }}
+                    value={this.state.gaslimit}
+                    disabled={isMetamask}
+                  />
+                )}
               </FormItem>
             </Col>
             <Col lg={12} xs={24}>
@@ -157,22 +190,22 @@ class GasPriceField extends Component {
                   this.props.form.getFieldDecorator('gasPrice', {
                     initialValue: this.state.gasprice
                   })(
-                    <Input
-                      type="number"
+                    <InputNumber
                       min={0}
-                      onChange={this.onInputChange.bind(this)}
+                      onChange={this.onGasPriceChange.bind(this)}
                       placeholder="Gas Price (gwei)"
+                      style={{ width: '100%' }}
                     />
                   )
                 ) : (
-                    <Input
-                      type="number"
-                      min={0}
-                      onChange={this.onInputChange.bind(this)}
-                      placeholder="Gas Price (gwei)"
-                      value={this.state.gasprice}
-                    />
-                  )}
+                  <InputNumber
+                    min={0}
+                    onChange={this.onGasPriceChange.bind(this)}
+                    placeholder="Gas Price (gwei)"
+                    value={this.state.gasprice}
+                    style={{ width: '100%' }}
+                  />
+                )}
               </FormItem>
             </Col>
           </Row>

@@ -103,7 +103,7 @@ class QuickDeployment extends Component {
   }
 
   render() {
-    const { initialValues } = this.props;
+    const { form, initialValues, loading, network } = this.props;
 
     const quickForm = (
       <div>
@@ -136,7 +136,7 @@ class QuickDeployment extends Component {
                 <Field
                   name="contractName"
                   initialValue={initialValues.contractName}
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -145,7 +145,7 @@ class QuickDeployment extends Component {
                 <Field
                   name="baseTokenAddress"
                   initialValue={initialValues.baseTokenAddress}
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -160,7 +160,7 @@ class QuickDeployment extends Component {
                       ? ''
                       : parseInt(initialValues.priceFloor, 10)
                   }
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -173,7 +173,7 @@ class QuickDeployment extends Component {
                       ? ''
                       : parseInt(initialValues.priceCap, 10)
                   }
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -188,7 +188,7 @@ class QuickDeployment extends Component {
                       ? ''
                       : parseInt(initialValues.priceDecimalPlaces, 10)
                   }
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -201,7 +201,7 @@ class QuickDeployment extends Component {
                       ? ''
                       : parseInt(initialValues.qtyMultiplier, 10)
                   }
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -212,7 +212,7 @@ class QuickDeployment extends Component {
                 <Field
                   name="expirationTimeStamp"
                   initialValue={initialValues.expirationTimeStamp}
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -221,7 +221,7 @@ class QuickDeployment extends Component {
                 <Field
                   name="oracleDataSource"
                   initialValue={initialValues.oracleDataSource}
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -232,7 +232,7 @@ class QuickDeployment extends Component {
                 <Field
                   name="oracleQuery"
                   initialValue={initialValues.oracleQuery}
-                  form={this.props.form}
+                  form={form}
                   showHint
                 />
               </ContractFormCol>
@@ -242,7 +242,8 @@ class QuickDeployment extends Component {
               <ContractFormCol>
                 <GasPriceField
                   location={this.props.location}
-                  form={this.props.form}
+                  form={form}
+                  network={network}
                 />
               </ContractFormCol>
             </ContractFormRow>
@@ -253,7 +254,7 @@ class QuickDeployment extends Component {
                   className="submit-button"
                   type="primary"
                   htmlType="submit"
-                  loading={this.props.loading}
+                  loading={loading}
                   disabled={this.isSubmitDisabled()}
                   style={{ width: '100%' }}
                 >
@@ -268,7 +269,7 @@ class QuickDeployment extends Component {
                   className="reset-button"
                   type="secondary"
                   style={{ width: '100%' }}
-                  disabled={this.props.loading}
+                  disabled={loading}
                   onClick={this.handleReset.bind(this)}
                 >
                   Reset Form
@@ -280,9 +281,9 @@ class QuickDeployment extends Component {
       </div>
     );
 
-    const loader = <Loader loading={this.props.loading} center={true} />;
+    const loader = <Loader loading={loading} center={true} />;
 
-    return this.props.loading ? (
+    return loading ? (
       <Spin indicator={loader} style={{ maxHeight: '100%', height: '100%' }}>
         {quickForm}
       </Spin>
